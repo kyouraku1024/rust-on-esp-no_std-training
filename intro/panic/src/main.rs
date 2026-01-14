@@ -13,5 +13,7 @@ fn main() -> ! {
 
     println!("Hello world!");
 
+    panic!("Here is a panic.");
+
     loop {}
 }
