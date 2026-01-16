@@ -80,11 +80,13 @@ fn handler() {
         let color = COLORFLAG.borrow(cs).get();
         match color {
             LedColorNow::Off => {
-                LED.borrow_ref_mut(cs).as_mut().unwrap().write([PURPLE]).unwrap();
+                LED.borrow_ref_mut(cs).as_mut().expect("LED driver not initialized") // check initialization (Option::unwrap)
+                    .write([PURPLE]).unwrap(); // check write success (Result::unwrap)
                 COLORFLAG.borrow(cs).set(LedColorNow::Purple);
             }
             LedColorNow::Purple => {
-                LED.borrow_ref_mut(cs).as_mut().unwrap().write([OFF]).unwrap();
+                LED.borrow_ref_mut(cs).as_mut().expect("LED driver not initialized")
+                    .write([OFF]).unwrap();
                 COLORFLAG.borrow(cs).set(LedColorNow::Off);
             }
         }
