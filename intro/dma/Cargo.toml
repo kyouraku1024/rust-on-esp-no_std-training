@@ -16,3 +16,5 @@ esp-hal = { version = "1.0.0",features = [
     "unstable",
 ] }
 esp-println = { version = "0.16.1", features = ["esp32c3", "log-04"] }
+esp-hal-smartled2 = { version = "0.28.1", features = ["esp32c3"] }
+smart-leds = "0.4"
