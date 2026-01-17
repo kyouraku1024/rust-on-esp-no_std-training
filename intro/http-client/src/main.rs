@@ -9,11 +9,7 @@ use embedded_io::*;
 use esp_alloc as _;
 use esp_backtrace as _;
 use esp_hal::{
-    clock::CpuClock,
-    interrupt::software::SoftwareInterruptControl,
-    main, ram,
-    rng::Rng,
-    time::{self, Duration},
+    clock::CpuClock, interrupt::software::SoftwareInterruptControl, main, ram, rng::Rng, time::{self, Duration}
 };
 use esp_println::{print, println};
 use esp_radio::wifi::{ClientConfig, ModeConfig, ScanConfig};
@@ -37,11 +33,14 @@ fn main() -> ! {
     esp_alloc::heap_allocator!(size: 36 * 1024);
 
     // Initialize the timer, rng and Wifi controller
-    // let timg0 =
-    // let sw_int =
-    // esp_rtos::start(
-    //     ...
-    // let esp_radio_ctrl =
+    let timg0 = esp_hal::timer::timg::TimerGroup::new(peripherals.TIMG0);
+    let sw_int = SoftwareInterruptControl::new(peripherals.SW_INTERRUPT);
+    esp_rtos::start(
+        timg0.timer0,
+        #[cfg(target_arch = "riscv32")]
+        sw_int.software_interrupt0
+    );
+    let esp_radio_ctrl = esp_radio::init().unwrap();
 
     // Configure Wifi
     let (mut controller, interfaces) =
@@ -64,8 +63,12 @@ fn main() -> ! {
     let stack = Stack::new(iface, device, socket_set, now, rng.random());
 
     // Create a Client with your Wi-Fi credentials and default configuration.
-    // let client_config = ModeConfig::Client(...);
-    let res = controller.set_conf(&client_config);
+    let client_config = ModeConfig::Client(
+        ClientConfig::default()
+            .with_ssid(SSID.into())
+            .with_password(PASSWORD.into())
+    );
+    let res = controller.set_config(&client_config);
     println!("Wi-Fi set_configuration returned {:?}", res);
 
     // Start Wi-Fi controller, scan the available networks.
@@ -73,7 +76,7 @@ fn main() -> ! {
     println!("Is wifi started: {:?}", controller.is_started());
 
     println!("Start Wifi Scan");
-    let scan_config = ScanConfig::default().with_max(10);
+    let scan_config = ScanConfig::default().with_max(50);
     let res = controller.scan_with_config(scan_config).unwrap();
     for ap in res {
         println!("{:?}", ap);
@@ -118,12 +121,12 @@ fn main() -> ! {
         socket.work();
 
         // Open the socket
-        // socket
-        //     .open(....)
-        //     .unwrap();
+        socket
+            .open(IpAddress::Ipv4(Ipv4Addr::new(142, 250, 185, 115)), 80)
+            .unwrap();
         // Write and flush the socket
-        // socket...
-        // socket...
+        socket.write(b"GET / HTTP/1.0\r\nHost: www.mobile-j.de\r\n\r\n").unwrap();
+        socket.flush().unwrap();
 
         let deadline = time::Instant::now() + Duration::from_secs(20);
         let mut buffer = [0u8; 512];

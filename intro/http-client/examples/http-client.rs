@@ -25,6 +25,8 @@ use smoltcp::{
 
 const SSID: &str = env!("SSID");
 const PASSWORD: &str = env!("PASSWORD");
+// const SSID: &str = "myRedmi";
+// const PASSWORD: &str = "qwertyui";
 
 esp_bootloader_esp_idf::esp_app_desc!();
 
@@ -90,7 +92,7 @@ fn main() -> ! {
     println!("Is wifi started: {:?}", controller.is_started());
 
     println!("Start Wifi Scan");
-    let scan_config = ScanConfig::default().with_max(10);
+    let scan_config = ScanConfig::default().with_max(50);
     let res = controller.scan_with_config(scan_config).unwrap();
     for ap in res {
         println!("{:?}", ap);
